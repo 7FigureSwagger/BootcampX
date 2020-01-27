@@ -7,18 +7,29 @@ const pool = new Pool({
 	database: "bootcampx"
 });
 
-let userInputCohort = process.argv.slice(2)[0];
-let userInputResults = process.argv.slice(2)[1] || 5;
+const cohortName = process.argv[2];
+const limit = process.argv[3] || 5;
+// Store all potentially malicious values in an array. 
+const values = [`%${cohortName}%`, limit];
 
-pool
-	.query(
-		`
-      SELECT students.id as student_id, students.name as name, cohorts.name as cohort
-      FROM students
-      JOIN cohorts ON cohorts.id = cohort_id
-      LIMIT 5;
-`
-	)
+const queryString = `
+  SELECT students.id as student_id, students.name as name, cohorts.name as cohort
+  FROM students
+  JOIN cohorts ON cohorts.id = cohort_id
+  WHERE cohorts.name LIKE $1
+  LIMIT $2;
+  `;
+
+// pool
+// 	.query(
+// 		`
+//       SELECT students.id as student_id, students.name as name, cohorts.name as cohort
+//       FROM students
+//       JOIN cohorts ON cohorts.id = cohort_id
+//       LIMIT 5;
+// `
+// 	)
+pool.query(queryString, values)
 	.then(res => {
 		res.rows.forEach(user => {
 			console.log(
